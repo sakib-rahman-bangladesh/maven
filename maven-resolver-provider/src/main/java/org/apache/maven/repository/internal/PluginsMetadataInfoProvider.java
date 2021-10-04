@@ -19,19 +19,26 @@ package org.apache.maven.repository.internal;
  * under the License.
  */
 
-import org.eclipse.aether.RepositorySystemSession;
-import org.junit.jupiter.api.Test;
+import org.eclipse.aether.artifact.Artifact;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-public class MavenRepositorySystemUtilsTest
+/**
+ * Plugin G level metadata provider.
+ */
+public interface PluginsMetadataInfoProvider
 {
-
-    @Test
-    public void testNewSession()
+    interface PluginInfo
     {
-        RepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-        assertNotNull( session );
+        String getPluginGroupId();
+
+        String getPluginArtifactId();
+
+        String getPluginPrefix();
+
+        String getPluginName();
     }
 
+    /**
+     * Returns {@link PluginInfo} corresponding for passed in {@link Artifact}, or {@code null}.
+     */
+    PluginInfo getPluginInfo( Artifact artifact );
 }

@@ -57,7 +57,8 @@ import org.apache.maven.plugin.prefix.NoPluginFoundForPrefixException;
 import org.apache.maven.plugin.version.PluginVersionResolutionException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.classworlds.realm.ClassRealm;
-import org.codehaus.plexus.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Common code that is shared by the LifecycleModuleBuilder and the LifeCycleWeaveBuilder
@@ -71,27 +72,35 @@ import org.codehaus.plexus.logging.Logger;
 @Singleton
 public class BuilderCommon
 {
-    @Inject
-    private LifecycleDebugLogger lifecycleDebugLogger;
+    private final Logger logger;
+    private final LifecycleDebugLogger lifecycleDebugLogger;
+    private final LifecycleExecutionPlanCalculator lifeCycleExecutionPlanCalculator;
+    private final ExecutionEventCatapult eventCatapult;
 
     @Inject
-    private LifecycleExecutionPlanCalculator lifeCycleExecutionPlanCalculator;
-
-    @Inject
-    private ExecutionEventCatapult eventCatapult;
-
-    @Inject
-    private Logger logger;
-
-    public BuilderCommon()
+    public BuilderCommon(
+            LifecycleDebugLogger lifecycleDebugLogger,
+            LifecycleExecutionPlanCalculator lifeCycleExecutionPlanCalculator,
+            ExecutionEventCatapult eventCatapult )
     {
+        this.logger = LoggerFactory.getLogger( getClass() );
+        this.lifecycleDebugLogger = lifecycleDebugLogger;
+        this.lifeCycleExecutionPlanCalculator = lifeCycleExecutionPlanCalculator;
+        this.eventCatapult = eventCatapult;
     }
 
-    public BuilderCommon( LifecycleDebugLogger lifecycleDebugLogger,
-                          LifecycleExecutionPlanCalculator lifeCycleExecutionPlanCalculator, Logger logger )
+    /**
+     * Ctor needed for UT.
+     */
+    BuilderCommon(
+            LifecycleDebugLogger lifecycleDebugLogger,
+            LifecycleExecutionPlanCalculator lifeCycleExecutionPlanCalculator,
+            ExecutionEventCatapult eventCatapult,
+            Logger logger )
     {
         this.lifecycleDebugLogger = lifecycleDebugLogger;
         this.lifeCycleExecutionPlanCalculator = lifeCycleExecutionPlanCalculator;
+        this.eventCatapult = eventCatapult;
         this.logger = logger;
     }
 
