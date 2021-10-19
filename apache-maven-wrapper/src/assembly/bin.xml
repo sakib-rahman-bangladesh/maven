@@ -24,7 +24,6 @@ under the License.
     xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
   <id>bin</id>
   <formats>
-    <format>tar.gz</format>
     <format>zip</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
@@ -52,10 +51,10 @@ under the License.
     </file>
     <file>
       <sources>
-        <source>src/assembly/shared/validate.cmd</source>
-        <source>src/assembly/shared/init.cmd</source>
+        <source>../apache-maven/src/assembly/shared/validate.cmd</source>
+        <source>../apache-maven/src/assembly/shared/init.cmd</source>
         <source>src/assembly/shared/mvnwlauncher.cmd</source>
-        <source>src/assembly/shared/run.cmd</source>
+        <source>../apache-maven/src/assembly/shared/run.cmd</source>
       </sources>
       <destName>mvnw.cmd</destName>
       <outputDirectory>.</outputDirectory>
@@ -64,10 +63,10 @@ under the License.
     </file>
     <file>
       <sources>
-        <source>src/assembly/shared/validate</source>
-        <source>src/assembly/shared/init</source>
+        <source>../apache-maven/src/assembly/shared/validate</source>
+        <source>../apache-maven/src/assembly/shared/init</source>
         <source>src/assembly/shared/mvnwlauncher</source>
-        <source>src/assembly/shared/run</source>
+        <source>../apache-maven/src/assembly/shared/run</source>
       </sources>
       <destName>mvnw</destName>
       <outputDirectory>.</outputDirectory>
@@ -78,11 +77,8 @@ under the License.
   </files>
   <fileSets>
     <fileSet>
-      <directory>src/assembly/wrapper/shared</directory>
-      <outputDirectory>.</outputDirectory>
-      <includes>
-        <include>.mvn/**</include>
-      </includes>
+      <directory>src/assembly/shared/mvn</directory>
+      <outputDirectory>.mvn</outputDirectory>
       <filtered>true</filtered>
     </fileSet>
   </fileSets>
