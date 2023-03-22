@@ -1,5 +1,3 @@
-package org.apache.maven.repository.internal;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,6 +16,7 @@ package org.apache.maven.repository.internal;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.repository.internal;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -29,27 +28,24 @@ import org.eclipse.aether.impl.MetadataGeneratorFactory;
 import org.eclipse.aether.installation.InstallRequest;
 
 /**
- * @author Benjamin Bentmann
+ * Maven GA level metadata generator factory.
  */
-@Named( "versions" )
+@Named("versions")
 @Singleton
-public class VersionsMetadataGeneratorFactory
-    implements MetadataGeneratorFactory
-{
-
-    public MetadataGenerator newInstance( RepositorySystemSession session, InstallRequest request )
-    {
-        return new VersionsMetadataGenerator( session, request );
+public class VersionsMetadataGeneratorFactory implements MetadataGeneratorFactory {
+    @Override
+    public MetadataGenerator newInstance(RepositorySystemSession session, InstallRequest request) {
+        return new VersionsMetadataGenerator(session, request);
     }
 
-    public MetadataGenerator newInstance( RepositorySystemSession session, DeployRequest request )
-    {
-        return new VersionsMetadataGenerator( session, request );
+    @Override
+    public MetadataGenerator newInstance(RepositorySystemSession session, DeployRequest request) {
+        return new VersionsMetadataGenerator(session, request);
     }
 
-    public float getPriority()
-    {
-        return 5;
+    @SuppressWarnings("checkstyle:magicnumber")
+    @Override
+    public float getPriority() {
+        return 20; // GA level metadata should be deployed 2nd MD
     }
-
 }

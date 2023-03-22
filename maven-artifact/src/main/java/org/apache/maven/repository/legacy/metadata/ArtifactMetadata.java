@@ -1,5 +1,3 @@
-package org.apache.maven.repository.legacy.metadata;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.repository.legacy.metadata;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,19 +16,19 @@ package org.apache.maven.repository.legacy.metadata;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.repository.legacy.metadata;
 
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.metadata.RepositoryMetadataStoreException;
 
 /**
  * Contains metadata about an artifact, and methods to retrieve/store it from an artifact repository.
- *
- * @author <a href="mailto:brett@apache.org">Brett Porter</a>
  * TODO merge with artifactmetadatasource
  * TODO retrieval exception not appropriate for store
+ *
+ * @author <a href="mailto:brett@apache.org">Brett Porter</a>
  */
-public interface ArtifactMetadata
-{
+public interface ArtifactMetadata {
     /**
      * Whether this metadata should be stored alongside the artifact.
      *
@@ -59,7 +57,7 @@ public interface ArtifactMetadata
      * @param repository the remote repository it came from
      * @return the filename
      */
-    String getLocalFilename( ArtifactRepository repository );
+    String getLocalFilename(ArtifactRepository repository);
 
     /**
      * Get the filename of this metadata on the remote repository.
@@ -70,23 +68,22 @@ public interface ArtifactMetadata
 
     /**
      * Merge a new metadata set into this piece of metadata.
+     * TODO this should only be needed on the repository metadata {@link org.apache.maven.artifact.metadata.ArtifactMetadata}
      *
      * @param metadata the new metadata
-     * TODO this should only be needed on the repository metadata
      */
-    void merge( ArtifactMetadata metadata );
+    void merge(ArtifactMetadata metadata);
 
     /**
      * Store the metadata in the local repository.
+     * TODO this should only be needed on the repository metadata {@link org.apache.maven.artifact.metadata.ArtifactMetadata}
      *
      * @param localRepository  the local repository
      * @param remoteRepository the remote repository it came from
      * @throws RepositoryMetadataStoreException in case of issue
-     * TODO this should only be needed on the repository metadata
      */
-    void storeInLocalRepository( ArtifactRepository localRepository,
-                                 ArtifactRepository remoteRepository )
-        throws RepositoryMetadataStoreException;
+    void storeInLocalRepository(ArtifactRepository localRepository, ArtifactRepository remoteRepository)
+            throws RepositoryMetadataStoreException;
 
     String extendedToString();
 }

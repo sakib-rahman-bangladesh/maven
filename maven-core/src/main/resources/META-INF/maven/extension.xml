@@ -22,6 +22,8 @@ under the License.
 <extension>
   <exportedPackages>
     <!-- maven-* -->
+    <exportedPackage>org.apache.maven.api</exportedPackage>
+
     <exportedPackage>org.apache.maven.*</exportedPackage>
     <exportedPackage>org.apache.maven.artifact</exportedPackage>
     <exportedPackage>org.apache.maven.classrealm</exportedPackage>
@@ -30,6 +32,7 @@ under the License.
     <exportedPackage>org.apache.maven.exception</exportedPackage>
     <exportedPackage>org.apache.maven.execution</exportedPackage>
     <exportedPackage>org.apache.maven.execution.scope</exportedPackage>
+    <exportedPackage>org.apache.maven.feature</exportedPackage>
     <exportedPackage>org.apache.maven.graph</exportedPackage>
     <exportedPackage>org.apache.maven.lifecycle</exportedPackage>
     <exportedPackage>org.apache.maven.model</exportedPackage>
@@ -39,7 +42,7 @@ under the License.
     <exportedPackage>org.apache.maven.project</exportedPackage>
     <exportedPackage>org.apache.maven.reporting</exportedPackage>
     <exportedPackage>org.apache.maven.repository</exportedPackage>
-    <exportedPackage>org.apache.maven.rtinfo</exportedPackage>
+    <exportedPackage>org.apache.maven.rtinfo.*</exportedPackage>
     <exportedPackage>org.apache.maven.settings</exportedPackage>
     <exportedPackage>org.apache.maven.toolchain</exportedPackage>
     <exportedPackage>org.apache.maven.usability</exportedPackage>
@@ -71,6 +74,7 @@ under the License.
     <exportedPackage>org.eclipse.aether.transfer</exportedPackage>
     <exportedPackage>org.eclipse.aether.transform</exportedPackage>
     <exportedPackage>org.eclipse.aether.version</exportedPackage>
+    <exportedPackage>org.eclipse.aether.util</exportedPackage>
 
     <!-- plexus-classworlds -->
     <exportedPackage>org.codehaus.plexus.classworlds</exportedPackage>
@@ -80,6 +84,7 @@ under the License.
 
     <!-- plexus-utils (for DOM-type fields in maven-model) -->
     <exportedPackage>org.codehaus.plexus.util.xml.Xpp3Dom</exportedPackage>
+    <exportedPackage>org.codehaus.plexus.util.xml.Xpp3DomBuilder</exportedPackage>
     <exportedPackage>org.codehaus.plexus.util.xml.pull.XmlPullParser</exportedPackage>
     <exportedPackage>org.codehaus.plexus.util.xml.pull.XmlPullParserException</exportedPackage>
     <exportedPackage>org.codehaus.plexus.util.xml.pull.XmlSerializer</exportedPackage>
@@ -131,6 +136,14 @@ under the License.
   </exportedPackages>
 
   <exportedArtifacts>
+    <!-- maven 4 api -->
+    <exportedArtifact>org.apache.maven:maven-api-core</exportedArtifact>
+    <exportedArtifact>org.apache.maven:maven-api-meta</exportedArtifact>
+    <exportedArtifact>org.apache.maven:maven-api-model</exportedArtifact>
+    <exportedArtifact>org.apache.maven:maven-api-settings</exportedArtifact>
+    <exportedArtifact>org.apache.maven:maven-api-toolchain</exportedArtifact>
+    <exportedArtifact>org.apache.maven:maven-api-xml</exportedArtifact>
+
     <exportedArtifact>classworlds:classworlds</exportedArtifact>
     <exportedArtifact>org.codehaus.plexus:plexus-classworlds</exportedArtifact>
     <exportedArtifact>org.codehaus.plexus:plexus-component-api</exportedArtifact>
@@ -168,6 +181,8 @@ under the License.
     <exportedArtifact>org.apache.maven.resolver:maven-resolver-api</exportedArtifact>
     <exportedArtifact>org.apache.maven.resolver:maven-resolver-spi</exportedArtifact>
     <exportedArtifact>org.apache.maven.resolver:maven-resolver-impl</exportedArtifact>
+    <exportedArtifact>org.apache.maven.resolver:maven-resolver-util</exportedArtifact>
+    <exportedArtifact>org.apache.maven.resolver:maven-resolver-connector-basic</exportedArtifact>
 
     <exportedArtifact>javax.inject:javax.inject</exportedArtifact>
     <exportedArtifact>javax.annotation:javax.annotation-api</exportedArtifact>
@@ -183,6 +198,8 @@ under the License.
     <exportedArtifact>org.eclipse.aether:aether-api</exportedArtifact>
     <exportedArtifact>org.eclipse.aether:aether-spi</exportedArtifact>
     <exportedArtifact>org.eclipse.aether:aether-impl</exportedArtifact>
+    <exportedArtifact>org.eclipse.aether:aether-util</exportedArtifact>
+    <exportedArtifact>org.eclipse.aether:aether-connector-basic</exportedArtifact>
 
     <!--
       | NOTE: Don't exclude the wagons or any of their dependencies (apart from the wagon API). This would otherwise

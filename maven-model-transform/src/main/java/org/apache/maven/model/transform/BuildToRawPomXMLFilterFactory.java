@@ -1,5 +1,3 @@
-package org.apache.maven.model.transform;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.model.transform;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,21 +16,14 @@ package org.apache.maven.model.transform;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.model.transform;
 
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
-
-import org.apache.maven.model.transform.sax.AbstractSAXFilter;
-import org.apache.maven.model.transform.sax.Factories;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.ext.LexicalHandler;
+import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 
 /**
  * Base implementation for providing the BuildToRawPomXML.
@@ -40,108 +31,65 @@ import org.xml.sax.ext.LexicalHandler;
  * @author Robert Scholte
  * @since 4.0.0
  */
-public class BuildToRawPomXMLFilterFactory
-{
+public class BuildToRawPomXMLFilterFactory {
     private final boolean consume;
 
-    private final Consumer<LexicalHandler> lexicalHandlerConsumer;
-
-    public BuildToRawPomXMLFilterFactory( Consumer<LexicalHandler> lexicalHandlerConsumer )
-    {
-        this( lexicalHandlerConsumer, false );
+    public BuildToRawPomXMLFilterFactory() {
+        this(false);
     }
 
-    public BuildToRawPomXMLFilterFactory( Consumer<LexicalHandler> lexicalHandlerConsumer, boolean consume )
-    {
-        this.lexicalHandlerConsumer = lexicalHandlerConsumer;
+    public BuildToRawPomXMLFilterFactory(boolean consume) {
         this.consume = consume;
     }
 
     /**
      *
      * @param projectFile will be used by ConsumerPomXMLFilter to get the right filter
-     * @throws SAXException
-     * @throws ParserConfigurationException
-     * @throws TransformerConfigurationException
      */
-    public final BuildToRawPomXMLFilter get( Path projectFile )
-        throws SAXException, ParserConfigurationException, TransformerConfigurationException
-    {
-        AbstractSAXFilter parent = new AbstractSAXFilter();
-        parent.setParent( getXMLReader() );
-        if ( lexicalHandlerConsumer != null )
-        {
-            lexicalHandlerConsumer.accept( parent );
+    public final XmlPullParser get(XmlPullParser orgParser, Path projectFile) {
+
+        // Ensure that xs:any elements aren't touched by next filters
+        XmlPullParser parser = orgParser instanceof FastForwardFilter ? orgParser : new FastForwardFilter(orgParser);
+
+        if (getDependencyKeyToVersionMapper() != null) {
+            parser = new ReactorDependencyXMLFilter(parser, getDependencyKeyToVersionMapper());
         }
 
-        if ( getDependencyKeyToVersionMapper() != null )
-        {
-            ReactorDependencyXMLFilter reactorDependencyXMLFilter =
-                new ReactorDependencyXMLFilter( getDependencyKeyToVersionMapper() );
-            reactorDependencyXMLFilter.setParent( parent );
-            parent.setLexicalHandler( reactorDependencyXMLFilter );
-            parent = reactorDependencyXMLFilter;
+        if (getRelativePathMapper() != null) {
+            parser = new ParentXMLFilter(parser, getRelativePathMapper(), projectFile.getParent());
         }
 
-        if ( getRelativePathMapper() != null )
-        {
-            ParentXMLFilter parentFilter = new ParentXMLFilter( getRelativePathMapper() );
-            parentFilter.setProjectPath( projectFile.getParent() );
-            parentFilter.setParent( parent );
-            parent.setLexicalHandler( parentFilter );
-            parent = parentFilter;
-        }
+        CiFriendlyXMLFilter ciFriendlyFilter = new CiFriendlyXMLFilter(parser, consume);
+        getChangelist().ifPresent(ciFriendlyFilter::setChangelist);
+        getRevision().ifPresent(ciFriendlyFilter::setRevision);
+        getSha1().ifPresent(ciFriendlyFilter::setSha1);
+        parser = ciFriendlyFilter;
 
-        CiFriendlyXMLFilter ciFriendlyFilter = new CiFriendlyXMLFilter( consume );
-        getChangelist().ifPresent( ciFriendlyFilter::setChangelist  );
-        getRevision().ifPresent( ciFriendlyFilter::setRevision );
-        getSha1().ifPresent( ciFriendlyFilter::setSha1 );
-
-        if ( ciFriendlyFilter.isSet() )
-        {
-            ciFriendlyFilter.setParent( parent );
-            parent.setLexicalHandler( ciFriendlyFilter );
-            parent = ciFriendlyFilter;
-        }
-
-        return new BuildToRawPomXMLFilter( parent );
-    }
-
-    private XMLReader getXMLReader() throws SAXException, ParserConfigurationException
-    {
-        XMLReader xmlReader = Factories.newXMLReader();
-        xmlReader.setFeature( "http://xml.org/sax/features/namespaces", true );
-        return xmlReader;
+        return parser;
     }
 
     /**
      * @return the mapper or {@code null} if relativePaths don't need to be mapped
      */
-    protected Function<Path, Optional<RelativeProject>> getRelativePathMapper()
-    {
+    protected Function<Path, Optional<RelativeProject>> getRelativePathMapper() {
         return null;
     }
 
-    protected BiFunction<String, String, String> getDependencyKeyToVersionMapper()
-    {
+    protected BiFunction<String, String, String> getDependencyKeyToVersionMapper() {
         return null;
     }
 
     // getters for the 3 magic properties of CIFriendly versions ( https://maven.apache.org/maven-ci-friendly.html )
 
-    protected Optional<String> getChangelist()
-    {
+    protected Optional<String> getChangelist() {
         return Optional.empty();
     }
 
-    protected Optional<String> getRevision()
-    {
+    protected Optional<String> getRevision() {
         return Optional.empty();
     }
 
-    protected Optional<String> getSha1()
-    {
+    protected Optional<String> getSha1() {
         return Optional.empty();
     }
-
 }

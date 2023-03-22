@@ -1,5 +1,3 @@
-package org.apache.maven.lifecycle.providers;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.lifecycle.providers;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,41 +16,32 @@ package org.apache.maven.lifecycle.providers;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import java.util.Collections;
-import java.util.HashMap;
+package org.apache.maven.lifecycle.providers;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.maven.lifecycle.Lifecycle;
-import org.apache.maven.lifecycle.mapping.LifecyclePhase;
-
-@Named( "wrapper" )
+/**
+ * {@code wrapper} lifecycle provider.
+ */
+@Named(WrapperLifecycleProvider.LIFECYCLE_ID)
 @Singleton
-public final class WrapperLifecycleProvider
-    implements Provider<Lifecycle>
-{
-  private final Lifecycle lifecycle;
+public final class WrapperLifecycleProvider extends AbstractLifecycleProvider {
+    static final String LIFECYCLE_ID = "wrapper";
 
-  @Inject
-  public WrapperLifecycleProvider()
-  {
-    HashMap<String, LifecyclePhase> phases = new HashMap<>();
-    phases.put( "wrapper", new LifecyclePhase( "org.apache.maven.plugins:maven-wrapper-plugin:3.0.2:wrapper" ) );
+    // START SNIPPET: wrapper
+    private static final String[] PHASES = {"wrapper"};
 
-    this.lifecycle = new Lifecycle(
-        "wrapper",
-        Collections.singletonList( "wrapper" ),
-        Collections.unmodifiableMap( phases )
-    );
-  }
+    private static final String MAVEN_WRAPPER_PLUGIN_VERSION = "3.1.1";
 
-  @Override
-  public Lifecycle get()
-  {
-    return lifecycle;
-  }
+    private static final String[] BINDINGS = {
+        "wrapper", "org.apache.maven.plugins:maven-wrapper-plugin:" + MAVEN_WRAPPER_PLUGIN_VERSION + ":wrapper"
+    };
+    // END SNIPPET: wrapper
+
+    @Inject
+    public WrapperLifecycleProvider() {
+        super(LIFECYCLE_ID, PHASES, BINDINGS);
+    }
 }

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,14 +17,13 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.apache.maven</groupId>
     <artifactId>maven</artifactId>
-    <version>4.0.0-alpha-1-SNAPSHOT</version>
+    <version>4.0.0-alpha-6-SNAPSHOT</version>
   </parent>
 
   <artifactId>maven-embedder</artifactId>
@@ -41,6 +39,10 @@ under the License.
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-settings-builder</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-toolchain-builder</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -81,12 +83,7 @@ under the License.
     <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
-      <classifier>no_aop</classifier>
       <exclusions>
-        <exclusion>
-          <groupId>aopalliance</groupId>
-          <artifactId>aopalliance</artifactId>
-        </exclusion>
         <!-- MNG-7068 Active dependency management for Google Guice / Google Guava. Excludes of Guava are managed in parent POM -->
         <exclusion>
           <groupId>com.google.guava</groupId>
@@ -112,10 +109,6 @@ under the License.
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-classworlds</artifactId>
     </dependency>
     <dependency>
@@ -129,6 +122,10 @@ under the License.
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-cipher</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-interpolation</artifactId>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -163,6 +160,11 @@ under the License.
       <artifactId>jansi</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -175,11 +177,21 @@ under the License.
         <groupId>org.codehaus.modello</groupId>
         <artifactId>modello-maven-plugin</artifactId>
         <configuration>
-          <version>1.0.0</version>
+          <version>1.1.0</version>
           <models>
             <model>src/main/mdo/core-extensions.mdo</model>
           </models>
         </configuration>
+        <executions>
+          <execution>
+            <id>modello</id>
+            <goals>
+              <goal>java</goal>
+              <goal>xpp3-reader</goal>
+              <goal>xpp3-writer</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

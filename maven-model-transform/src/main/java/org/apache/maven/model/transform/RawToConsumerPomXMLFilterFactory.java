@@ -1,5 +1,3 @@
-package org.apache.maven.model.transform;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,43 +16,35 @@ package org.apache.maven.model.transform;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.model.transform;
 
 import java.nio.file.Path;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerConfigurationException;
-
-import org.apache.maven.model.transform.sax.AbstractSAXFilter;
-import org.xml.sax.SAXException;
+import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 
 /**
- *
+ * @author Guillaume Nodet
  * @author Robert Scholte
  * @since 4.0.0
  */
-public class RawToConsumerPomXMLFilterFactory
-{
+public class RawToConsumerPomXMLFilterFactory {
     private BuildToRawPomXMLFilterFactory buildPomXMLFilterFactory;
 
-    public RawToConsumerPomXMLFilterFactory( BuildToRawPomXMLFilterFactory buildPomXMLFilterFactory )
-    {
+    public RawToConsumerPomXMLFilterFactory(BuildToRawPomXMLFilterFactory buildPomXMLFilterFactory) {
         this.buildPomXMLFilterFactory = buildPomXMLFilterFactory;
     }
 
-    public final RawToConsumerPomXMLFilter get( Path projectPath )
-        throws SAXException, ParserConfigurationException, TransformerConfigurationException
-    {
-        BuildToRawPomXMLFilter parent = buildPomXMLFilterFactory.get( projectPath );
-
-
+    public final XmlPullParser get(XmlPullParser orgParser, Path projectPath) {
         // Ensure that xs:any elements aren't touched by next filters
-        AbstractSAXFilter filter = new FastForwardFilter( parent );
+        XmlPullParser parser = orgParser instanceof FastForwardFilter ? orgParser : new FastForwardFilter(orgParser);
+
+        parser = buildPomXMLFilterFactory.get(parser, projectPath);
 
         // Strip modules
-        filter = new ModulesXMLFilter( filter );
+        parser = new ModulesXMLFilter(parser);
         // Adjust relativePath
-        filter = new RelativePathXMLFilter( filter );
+        parser = new RelativePathXMLFilter(parser);
 
-        return new RawToConsumerPomXMLFilter( filter );
+        return parser;
     }
 }

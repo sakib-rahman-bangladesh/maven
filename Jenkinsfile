@@ -21,10 +21,10 @@ properties([buildDiscarder(logRotator(artifactNumToKeepStr: '5', numToKeepStr: e
 
 def buildOs = 'linux'
 def buildJdk = '8'
-def buildMvn = '3.6.3'
-def runITsOses = ['linux', 'windows']
-def runITsJdks = ['8', '11', '16', '17']
-def runITsMvn = '3.6.3'
+def buildMvn = '3.8.x'
+def runITsOses = ['linux']
+def runITsJdks = ['8', '11', '17']
+def runITsMvn = '3.8.x'
 def runITscommand = "mvn clean install -Prun-its,embedded -B -U -V" // -DmavenDistro=... -Dmaven.test.failure.ignore=true
 def tests
 
@@ -41,7 +41,7 @@ node(jenkinsEnv.nodeSelection(osNode)) {
         def MAVEN_GOAL='verify'
 
         stage('Configure deploy') {
-           if (env.BRANCH_NAME == 'master'){
+           if (env.BRANCH_NAME in ['master', 'maven-3.8.x', 'maven-3.9.x']){
                MAVEN_GOAL='deploy'
            }
         }
@@ -49,31 +49,19 @@ node(jenkinsEnv.nodeSelection(osNode)) {
         stage('Build / Unit Test') {
             String jdkName = jenkinsEnv.jdkFromVersion(buildOs, buildJdk)
             String mvnName = jenkinsEnv.mvnFromVersion(buildOs, buildMvn)
-            withMaven(jdk: jdkName, maven: mvnName, mavenLocalRepo:"${WORK_DIR}/.repository", options:[
-                artifactsPublisher(disabled: false),
-                junitPublisher(ignoreAttachments: false),
-                findbugsPublisher(disabled: true),
-                openTasksPublisher(disabled: true),
-                dependenciesFingerprintPublisher(disabled: false),
-                invokerPublisher(disabled: true),
-                pipelineGraphPublisher(disabled: false)
-            ], publisherStrategy: 'EXPLICIT') {
-                // For now: maven-wrapper contains 2 poms sharing the same outputDirectory, so separate clean
-                sh "mvn clean"
-                sh "mvn ${MAVEN_GOAL} -B -U -e -fae -V -Dmaven.test.failure.ignore=true -P versionlessMavenDist"
-            }
+            try {
+                withEnv(["JAVA_HOME=${ tool "$jdkName" }",
+                         "PATH+MAVEN=${ tool "$jdkName" }/bin:${tool "$mvnName"}/bin",
+                         "MAVEN_OPTS=-Xms2g -Xmx4g -Djava.awt.headless=true"]) {                   
+                    sh "mvn clean ${MAVEN_GOAL} -B -U -e -fae -V -Dmaven.test.failure.ignore -PversionlessMavenDist -Dmaven.repo.local=${WORK_DIR}/.repository"
+                }
+            } finally {
+                junit testResults: '**/target/surefire-reports/*.xml,**/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }    
             dir ('apache-maven/target') {
                 stash includes: 'apache-maven-bin.zip', name: 'maven-dist'
             }
-            dir ('apache-maven-wrapper/target') {
-                stash includes: 'apache-maven-wrapper-*.zip', name: 'maven-wrapper-dist'
-            }
-            dir ('maven-wrapper/target') {
-                stash includes: 'maven-wrapper.jar', name: 'wrapper-dist'
-            }
         }
-
-        tests = resolveScm source: [$class: 'GitSCMSource', credentialsId: '', id: '_', remote: 'https://gitbox.apache.org/repos/asf/maven-integration-testing.git', traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait'], [$class: 'GitToolSCMSourceTrait', gitTool: 'Default']]], targets: [BRANCH_NAME, 'master']
     }
 }
 
@@ -96,7 +84,10 @@ for (String os in runITsOses) {
                     // will not trample each other plus workaround for JENKINS-52657
                     dir(isUnix() ? 'test' : "c:\\mvn-it-${EXECUTOR_NUMBER}.tmp") {
                         def WORK_DIR=pwd()
-                        checkout tests
+                        checkout([$class: 'GitSCM',
+                                branches: [[name: "*/master"]],
+                                extensions: [[$class: 'CloneOption', depth: 1, noTags: true, shallow: true]],
+                                userRemoteConfigs: [[url: 'https://github.com/apache/maven-integration-testing.git']]])                        
                         if (isUnix()) {
                             sh "rm -rvf $WORK_DIR/dists $WORK_DIR/it-local-repo"
                         } else {
@@ -105,14 +96,12 @@ for (String os in runITsOses) {
                         }
                         dir('dists') {
                           unstash 'maven-dist'
-                          unstash 'maven-wrapper-dist'
-                          unstash 'wrapper-dist'
                         }
                         try {
-                            withMaven(jdk: jdkName, maven: mvnName, mavenLocalRepo:"${WORK_DIR}/it-local-repo", options:[
-                                junitPublisher(ignoreAttachments: false)
-                            ]) {
-                                String cmd = "${runITscommand} -DmavenDistro=$WORK_DIR/dists/apache-maven-bin.zip -Dmaven.test.failure.ignore=true -DmavenWrapper=$WORK_DIR/dists/maven-wrapper.jar -DwrapperDistroDir=${WORK_DIR}/dists"
+                            withEnv(["JAVA_HOME=${ tool "$jdkName" }",
+                                        "PATH+MAVEN=${ tool "$jdkName" }/bin:${tool "$mvnName"}/bin",
+                                        "MAVEN_OPTS=-Xms2g -Xmx4g -Djava.awt.headless=true"]) {                                               
+                                String cmd = "${runITscommand} -Dmaven.repo.local=$WORK_DIR/it-local-repo -DmavenDistro=$WORK_DIR/dists/apache-maven-bin.zip -Dmaven.test.failure.ignore"
 
                                 if (isUnix()) {
                                     sh 'df -hT'
@@ -123,6 +112,9 @@ for (String os in runITsOses) {
                                 }
                             }
                         } finally {
+                            // in ITs test we need only reports from test itself
+                            // test projects can contain reports with tested failed builds
+                            junit testResults: '**/core-it-suite/target/surefire-reports/*.xml,**/core-it-support/**/target/surefire-reports/*.xml', allowEmptyResults: true
                             archiveDirs(stageId, ['core-it-suite-logs':'core-it-suite/target/test-classes',
                                                   'core-it-suite-reports':'core-it-suite/target/surefire-reports'])
                             deleteDir() // clean up after ourselves to reduce disk space

@@ -1,5 +1,3 @@
-package org.apache.maven.extension.internal;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,39 +16,36 @@ package org.apache.maven.extension.internal;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.extension.internal;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import java.util.Objects;
+
 import org.codehaus.plexus.PlexusContainer;
-import org.eclipse.sisu.Nullable;
 
 /**
  * CoreExportsProvider
  */
 @Named
 @Singleton
-public class CoreExportsProvider
-{
+public class CoreExportsProvider implements Provider<CoreExports> {
 
     private final CoreExports exports;
 
     @Inject
-    public CoreExportsProvider( PlexusContainer container, @Nullable CoreExports exports )
-    {
-        if ( exports == null )
-        {
-            this.exports = new CoreExports( CoreExtensionEntry.discoverFrom( container.getContainerRealm() ) );
-        }
-        else
-        {
-            this.exports = exports;
-        }
+    public CoreExportsProvider(PlexusContainer container) {
+        this(new CoreExports(CoreExtensionEntry.discoverFrom(container.getContainerRealm())));
     }
 
-    public CoreExports get()
-    {
+    public CoreExportsProvider(CoreExports exports) {
+        this.exports = Objects.requireNonNull(exports);
+    }
+
+    public CoreExports get() {
         return exports;
     }
 }

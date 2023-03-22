@@ -1,5 +1,3 @@
-package org.apache.maven.model.transform;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,25 +16,26 @@ package org.apache.maven.model.transform;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.model.transform;
 
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import org.apache.maven.model.transform.sax.AbstractSAXFilter;
-import org.xml.sax.Attributes;
-import org.xml.sax.ContentHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLFilter;
+import org.apache.maven.model.transform.pull.BufferingParser;
+import org.codehaus.plexus.util.xml.pull.XmlPullParser;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 /**
- * This filter will skip all following filters and write directly to the output.
- * Should be used in case of a DOM that should not be effected by other filters, even though the elements match
+ * This filter will bypass all following filters and write directly to the output.
+ * Should be used in case of a DOM that should not be effected by other filters,
+ * even though the elements match.
  *
  * @author Robert Scholte
+ * @author Guillaume Nodet
  * @since 4.0.0
  */
-class FastForwardFilter extends AbstractSAXFilter
-{
+class FastForwardFilter extends BufferingParser {
     /**
      * DOM elements of pom
      *
@@ -53,75 +52,60 @@ class FastForwardFilter extends AbstractSAXFilter
 
     private int domDepth = 0;
 
-    private ContentHandler originalHandler;
-
-    FastForwardFilter()
-    {
-        super();
-    }
-
-    FastForwardFilter( AbstractSAXFilter parent )
-    {
-        super( parent );
+    FastForwardFilter(XmlPullParser xmlPullParser) {
+        super(xmlPullParser);
     }
 
     @Override
-    public void startElement( String uri, String localName, String qName, Attributes atts )
-        throws SAXException
-    {
-        super.startElement( uri, localName, qName, atts );
-        if ( domDepth > 0 )
-        {
-            domDepth++;
-        }
-        else
-        {
-            final String key = state.peek() + '.' + localName;
-            switch ( key )
-            {
-                case "execution.configuration":
-                case "plugin.configuration":
-                case "plugin.goals":
-                case "profile.reports":
-                case "project.reports":
-                case "reportSet.configuration":
-                    domDepth++;
+    public int next() throws XmlPullParserException, IOException {
+        int event = super.next();
+        filter();
+        return event;
+    }
 
-                    originalHandler = getContentHandler();
+    @Override
+    public int nextToken() throws XmlPullParserException, IOException {
+        int event = super.nextToken();
+        filter();
+        return event;
+    }
 
-                    ContentHandler outputContentHandler = getContentHandler();
-                    while ( outputContentHandler instanceof XMLFilter )
-                    {
-                        outputContentHandler = ( (XMLFilter) outputContentHandler ).getContentHandler();
-                    }
-                    setContentHandler( outputContentHandler );
-                    break;
-                default:
-                    break;
+    protected void filter() throws XmlPullParserException, IOException {
+        if (xmlPullParser.getEventType() == START_TAG) {
+            String localName = xmlPullParser.getName();
+            if (domDepth > 0) {
+                domDepth++;
+            } else {
+                final String key = state.peekLast() + '/' + localName;
+                switch (key) {
+                    case "execution/configuration":
+                    case "plugin/configuration":
+                    case "plugin/goals":
+                    case "profile/reports":
+                    case "project/reports":
+                    case "reportSet/configuration":
+                        if (domDepth == 0) {
+                            bypass(true);
+                        }
+                        domDepth++;
+                        break;
+                    default:
+                        break;
+                }
             }
-            state.push( localName );
+            state.add(localName);
+        } else if (xmlPullParser.getEventType() == END_TAG) {
+            if (domDepth > 0) {
+                if (--domDepth == 0) {
+                    bypass(false);
+                }
+            }
+            state.removeLast();
         }
     }
 
     @Override
-    public void endElement( String uri, String localName, String qName )
-        throws SAXException
-    {
-        if ( domDepth > 0 )
-        {
-            domDepth--;
-
-            if ( domDepth == 0 )
-            {
-                setContentHandler( originalHandler );
-            }
-        }
-        else
-        {
-            state.pop();
-        }
-        super.endElement( uri, localName, qName );
+    public void bypass(boolean bypass) {
+        this.bypass = bypass;
     }
-
-
 }

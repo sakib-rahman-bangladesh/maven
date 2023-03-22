@@ -1,5 +1,3 @@
-package org.apache.maven.model.building;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,11 +16,12 @@ package org.apache.maven.model.building;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.model.building;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
+
+import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 
 /**
  * Default ModelSourceTransformer, provides pomFile as inputStream and ignores the context
@@ -30,14 +29,11 @@ import java.nio.file.Path;
  * @author Robert Scholte
  * @since 4.0.0
  */
-public class DefaultModelSourceTransformer implements ModelSourceTransformer
-{
+public class DefaultModelSourceTransformer implements ModelSourceTransformer {
 
     @Override
-    public InputStream transform( Path pomFile, TransformerContext context )
-        throws IOException, TransformerException
-    {
-        return Files.newInputStream( pomFile );
+    public XmlPullParser transform(XmlPullParser parser, Path pomFile, TransformerContext context)
+            throws IOException, TransformerException {
+        return parser;
     }
-
 }

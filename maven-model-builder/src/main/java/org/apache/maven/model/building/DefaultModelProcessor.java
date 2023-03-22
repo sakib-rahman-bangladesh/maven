@@ -1,5 +1,3 @@
-package org.apache.maven.model.building;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,16 +16,17 @@ package org.apache.maven.model.building;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.model.building;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Map;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.ModelReader;
@@ -42,12 +41,12 @@ import org.eclipse.sisu.Typed;
  * made this component available under all its interfaces then it could end up being injected
  * into itself leading to a stack overflow.
  *
- * A side-effect of using @Typed is that it translates to explicit bindings in the container.
+ * A side effect of using @Typed is that it translates to explicit bindings in the container.
  * So instead of binding the component under a 'wildcard' key it is now bound with an explicit
  * key. Since this is a default component this will be a plain binding of ModelProcessor to
  * this implementation type, ie. no hint/name.
  *
- * This leads to a second side-effect in that any @Inject request for just ModelProcessor in
+ * This leads to a second side effect in that any @Inject request for just ModelProcessor in
  * the same injector is immediately matched to this explicit binding, which means extensions
  * cannot override this binding. This is because the lookup is always short-circuited in this
  * specific situation (plain @Inject request, and plain explicit binding for the same type.)
@@ -59,48 +58,37 @@ import org.eclipse.sisu.Typed;
  * of the same interface. Since we want to allow overriding this doesn't matter in this case.
  * (if it did we could add @Priority of 0 to match the priority given to default components.)
  */
-@Named( "core-default" )
+@Named("core-default")
 @Singleton
-@Typed( ModelProcessor.class )
-public class DefaultModelProcessor
-    implements ModelProcessor
-{
+@Typed(ModelProcessor.class)
+public class DefaultModelProcessor implements ModelProcessor {
 
     private final ModelLocator locator;
     private final ModelReader reader;
 
     @Inject
-    public DefaultModelProcessor( ModelLocator locator, ModelReader reader )
-    {
+    public DefaultModelProcessor(ModelLocator locator, ModelReader reader) {
         this.locator = locator;
         this.reader = reader;
     }
 
     @Override
-    public File locatePom( File projectDirectory )
-    {
-        return locator.locatePom( projectDirectory );
+    public File locatePom(File projectDirectory) {
+        return locator.locatePom(projectDirectory);
     }
 
     @Override
-    public Model read( File input, Map<String, ?> options )
-        throws IOException
-    {
-        return reader.read( input, options );
+    public Model read(File input, Map<String, ?> options) throws IOException {
+        return reader.read(input, options);
     }
 
     @Override
-    public Model read( Reader input, Map<String, ?> options )
-        throws IOException
-    {
-        return reader.read( input, options );
+    public Model read(Reader input, Map<String, ?> options) throws IOException {
+        return reader.read(input, options);
     }
 
     @Override
-    public Model read( InputStream input, Map<String, ?> options )
-        throws IOException
-    {
-        return reader.read( input, options );
+    public Model read(InputStream input, Map<String, ?> options) throws IOException {
+        return reader.read(input, options);
     }
-
 }

@@ -1,5 +1,3 @@
-package org.apache.maven.model.transform;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -18,91 +16,52 @@ package org.apache.maven.model.transform;
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.apache.maven.model.transform;
 
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
+import java.util.List;
+import java.util.regex.Pattern;
 
-import org.apache.maven.model.transform.sax.AbstractSAXFilter;
+import org.apache.maven.model.transform.pull.NodeBufferingParser;
+import org.codehaus.plexus.util.xml.pull.XmlPullParser;
 
 /**
  * Remove relativePath element, has no value for consumer pom
  *
  * @author Robert Scholte
+ * @author Guillaume Nodet
  * @since 4.0.0
  */
-class RelativePathXMLFilter
-    extends AbstractEventXMLFilter
-{
-    private boolean parsingParent;
+public class RelativePathXMLFilter extends NodeBufferingParser {
 
-    private String state;
+    private static final Pattern S_FILTER = Pattern.compile("\\s+");
 
-    RelativePathXMLFilter()
-    {
-        super();
+    public RelativePathXMLFilter(XmlPullParser xmlPullParser) {
+        super(xmlPullParser, "parent");
     }
 
-    RelativePathXMLFilter( AbstractSAXFilter parent )
-    {
-        super( parent );
-    }
-
-    @Override
-    public void startElement( String uri, final String localName, String qName, Attributes atts )
-        throws SAXException
-    {
-        if ( !parsingParent && "parent".equals( localName ) )
-        {
-            parsingParent = true;
-        }
-
-        if ( parsingParent )
-        {
-            state = localName;
-        }
-
-        super.startElement( uri, localName, qName, atts );
-    }
-
-    @Override
-    public void endElement( String uri, String localName, String qName )
-        throws SAXException
-    {
-        if ( parsingParent )
-        {
-            switch ( localName )
-            {
-                case "parent":
-                    executeEvents();
-
-                    parsingParent = false;
-                    break;
-                default:
-                    break;
+    protected void process(List<Event> buffer) {
+        boolean skip = false;
+        Event prev = null;
+        for (Event event : buffer) {
+            if (event.event == START_TAG && "relativePath".equals(event.name)) {
+                skip = true;
+                if (prev != null
+                        && prev.event == TEXT
+                        && S_FILTER.matcher(prev.text).matches()) {
+                    prev = null;
+                }
+                event = null;
+            } else if (event.event == END_TAG && "relativePath".equals(event.name)) {
+                skip = false;
+                event = null;
+            } else if (skip) {
+                event = null;
             }
+            if (prev != null) {
+                pushEvent(prev);
+            }
+            prev = event;
         }
-
-        super.endElement( uri, localName, qName );
-
-        // for this simple structure resetting to parent it sufficient
-        state = "parent";
-    }
-
-    @Override
-    protected boolean isParsing()
-    {
-        return parsingParent;
-    }
-
-    @Override
-    protected String getState()
-    {
-        return state;
-    }
-
-    @Override
-    protected boolean acceptEvent( String state )
-    {
-        return !"relativePath".equals( state );
+        pushEvent(prev);
     }
 }

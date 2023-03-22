@@ -1,5 +1,3 @@
-package org.apache.maven.lifecycle.providers;
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -9,7 +7,7 @@ package org.apache.maven.lifecycle.providers;
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -18,48 +16,33 @@ package org.apache.maven.lifecycle.providers;
  * specific language governing permissions and limitations
  * under the License.
  */
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
+package org.apache.maven.lifecycle.providers;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
-import org.apache.maven.lifecycle.Lifecycle;
-import org.apache.maven.lifecycle.mapping.LifecyclePhase;
-
-@Named( "site" )
+/**
+ * {@code site} lifecycle provider.
+ */
+@Named(SiteLifecycleProvider.LIFECYCLE_ID)
 @Singleton
-public final class SiteLifecycleProvider
-    implements Provider<Lifecycle>
-{
-  private final Lifecycle lifecycle;
+public final class SiteLifecycleProvider extends AbstractLifecycleProvider {
+    static final String LIFECYCLE_ID = "site";
 
-  @Inject
-  public SiteLifecycleProvider()
-  {
-    HashMap<String, LifecyclePhase> phases = new HashMap<>();
-    phases.put( "site", new LifecyclePhase( "org.apache.maven.plugins:maven-site-plugin:3.9.1:site" ) );
-    phases.put( "site-deploy", new LifecyclePhase( "org.apache.maven.plugins:maven-site-plugin:3.9.1:deploy" ) );
+    // START SNIPPET: site
+    private static final String[] PHASES = {"pre-site", "site", "post-site", "site-deploy"};
 
-    this.lifecycle = new Lifecycle(
-        "site",
-        Collections.unmodifiableList( Arrays.asList(
-                "pre-site",
-                "site",
-                "post-site",
-                "site-deploy"
-        ) ),
-        Collections.unmodifiableMap( phases )
-    );
-  }
+    private static final String MAVEN_SITE_PLUGIN_VERSION = "3.12.1";
 
-  @Override
-  public Lifecycle get()
-  {
-    return lifecycle;
-  }
+    private static final String[] BINDINGS = {
+        "site", "org.apache.maven.plugins:maven-site-plugin:" + MAVEN_SITE_PLUGIN_VERSION + ":site",
+        "site-deploy", "org.apache.maven.plugins:maven-site-plugin:" + MAVEN_SITE_PLUGIN_VERSION + ":deploy"
+    };
+    // END SNIPPET: site
+
+    @Inject
+    public SiteLifecycleProvider() {
+        super(LIFECYCLE_ID, PHASES, BINDINGS);
+    }
 }
